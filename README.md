@@ -20,3 +20,8 @@ In the future, when new items are added or when item flags and locations within 
 
 
 ### Special thanks to Steam user Zero for [his helpful guide](http://steamcommunity.com/sharedfiles/filedetails/?id=776854746), without which this probably would never have happened.
+
+---
+
+Also want to edit the game's own levels, not just your save? See [MODDING.md](MODDING.md) for the
+manifest-check binary patch and the enemy-mixing script.

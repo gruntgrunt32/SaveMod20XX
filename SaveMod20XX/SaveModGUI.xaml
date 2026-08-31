@@ -109,6 +109,7 @@
                   DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                   ItemsSource="{Binding Path=AllItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   AutoGenerateColumns="False" Margin="10,59,10,10" BorderBrush="#00688CAF" CanUserAddRows="False"
+                  EnableRowVirtualization="False" EnableColumnVirtualization="False"
                   RowHeight="42" GridLinesVisibility="Horizontal"
                   Background="{StaticResource TransparentIshBrush}" RowBackground="{StaticResource TransparentIshBrush}" HorizontalAlignment="Left" Width="1015">
             <DataGrid.Columns>
@@ -123,7 +124,7 @@
                 <DataGridTemplateColumn Header="Toggle" Width="120" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="{Binding Availability}" Click="ToggleAvailability_Click" Loaded="AvailabilityButton_Loaded"
+                            <Button Content="{Binding Availability}" Click="ToggleAvailability_Click" Loaded="AvailabilityButton_Loaded" DataContextChanged="AvailabilityButton_DataContextChanged"
                                     Margin="3" FontWeight="Bold" Cursor="Hand" BorderThickness="1" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

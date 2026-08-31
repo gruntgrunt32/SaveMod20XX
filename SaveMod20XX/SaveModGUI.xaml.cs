@@ -25,11 +25,11 @@ namespace SaveMod20XX
         public ObservableCollection<Item> AllItems { get; set; } = new ObservableCollection<Item>();
         internal Settings SettingsFile { get; set; }
         internal string SaveNameAndPathToUse { get; set; }
-        
+
         public SaveModGUI()
         {
             InitializeComponent();
-            
+
             Loaded += SaveModGUI_Loaded;
         }
 
@@ -159,7 +159,8 @@ namespace SaveMod20XX
         }
 
         /// <summary>
-        /// Click-to-toggle for the Availability column. Cycles NoChange -> Unlocked -> Locked -> NoChange.
+        /// Click-to-toggle for the Availability column. Flips between Enabled (Unlocked) and Disabled (Locked) -
+        /// the button is seeded from the save file's actual current bit, so this always reflects real state.
         /// </summary>
         private void ToggleAvailability_Click(object sender, RoutedEventArgs e)
         {
@@ -167,12 +168,7 @@ namespace SaveMod20XX
             Item item = btn.DataContext as Item;
             if (item == null) { return; }
 
-            switch (item.Availability)
-            {
-                case LockState.NoChange: item.Availability = LockState.Unlocked; break;
-                case LockState.Unlocked: item.Availability = LockState.Locked; break;
-                default: item.Availability = LockState.NoChange; break;
-            }
+            item.Availability = (item.Availability == LockState.Unlocked) ? LockState.Locked : LockState.Unlocked;
             StyleAvailabilityButton(btn, item.Availability);
         }
 
@@ -184,22 +180,36 @@ namespace SaveMod20XX
         }
 
         /// <summary>
+        /// The DataGrid can recycle row containers as you scroll - a recycled button keeps its old
+        /// styling because Loaded only fires once per container, not once per row it's reused for.
+        /// This re-syncs the button's look every time its DataContext actually changes.
+        /// </summary>
+        private void AvailabilityButton_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            Button btn = (Button)sender;
+            Item item = btn.DataContext as Item;
+            if (item != null) { StyleAvailabilityButton(btn, item.Availability); }
+        }
+
+        /// <summary>
         /// Colors the toggle button by state and sets its label.
         /// </summary>
         private static void StyleAvailabilityButton(Button btn, LockState state)
         {
-            btn.Content = state.ToString();
             switch (state)
             {
                 case LockState.Unlocked:
+                    btn.Content = "Enabled";
                     btn.Background = new SolidColorBrush(Color.FromRgb(0x2E, 0x7D, 0x32)); // green
                     btn.Foreground = Brushes.White;
                     break;
                 case LockState.Locked:
+                    btn.Content = "Disabled";
                     btn.Background = new SolidColorBrush(Color.FromRgb(0xC6, 0x28, 0x28)); // crimson
                     btn.Foreground = Brushes.White;
                     break;
-                default: // NoChange
+                default: // NoChange - not used for lockable items anymore, kept as a safe fallback
+                    btn.Content = "No Change";
                     btn.Background = new SolidColorBrush(Color.FromRgb(0x3A, 0x3A, 0x4A)); // gray
                     btn.Foreground = new SolidColorBrush(Color.FromRgb(0xFD, 0xDD, 0x93)); // yellow
                     break;

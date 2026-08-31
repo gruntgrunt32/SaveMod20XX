@@ -45,10 +45,10 @@ namespace SaveMod20XX
             { "ChargedNuts", "charged nut" },
             { "Gapminder", "fam_rolly" },
             { "TheRebeginner", "fam_bat" },
-            { "ShockwaveSidekick", "fam_gorilla" },
+            { "ShockwaveSidekick", "fam_penguin" }, // description says "Penguin fires ice" - was mismatched with ReFlapp
             { "Vendsmasher", "vendsmasher" },
             { "ShinierToken", "supertoken" },
-            { "ReFlapp", "fam_penguin" },
+            { "ReFlapp", "fam_gorilla" }, // "Headbutts foes" fits gorilla far better than penguin
             { "TinyFlamespewer", "fam_dragon" },
             { "ArmorativePlating", "armorpl" },
             { "ThriftActuator", "thrift" },
@@ -317,10 +317,40 @@ namespace SaveMod20XX
             return (itemName != null && DescMap.TryGetValue(itemName, out desc)) ? desc : "";
         }
 
+        /// <summary>
+        /// Reads each lockable item's real current state straight out of the save file, so the GUI opens
+        /// showing what's actually Enabled/Disabled right now instead of a meaningless "NoChange" default.
+        /// Non-lockable items (permanently fixed by the game/tool) are left untouched.
+        /// </summary>
+        private static void SeedCurrentAvailability(byte[] saveBytes, IEnumerable<Item> items, long unlockOffset, long dataLoreOffset, long size)
+        {
+            long offset = unlockOffset >= 0 ? unlockOffset : dataLoreOffset;
+            if (offset < 0) { return; } // neither offset applies to this section
+
+            byte[] sectionBytes = GetOriginalData(offset, size, saveBytes);
+            BigInteger sectionValue = Settings.GetBigIntFromRawBytes(sectionBytes);
+
+            foreach (Item item in items)
+            {
+                if (!item.Lockable) { continue; }
+
+                BigInteger mask = Settings.GetAsBigInt(item.HexValue);
+                bool isEnabled = mask != 0 && (sectionValue & mask) == mask;
+                item.Availability = isEnabled ? LockState.Unlocked : LockState.Locked;
+            }
+        }
+
         static void RunGui(Settings programSettings, string saveNameAndPathToUse)
         {
             WinApp = new Application();
             MainWindow = new SaveModGUI();
+
+            byte[] currentSaveBytes = ReadInFile(saveNameAndPathToUse, new FileInfo(saveNameAndPathToUse));
+            SeedCurrentAvailability(currentSaveBytes, programSettings.BasicAugments, programSettings.UnlockByteOffsets.BasicAugments, programSettings.DataLoreByteOffsets.BasicAugments, programSettings.DataSizes.BasicAugments);
+            SeedCurrentAvailability(currentSaveBytes, programSettings.PrimaryWeapons, programSettings.UnlockByteOffsets.PrimaryWeapons, programSettings.DataLoreByteOffsets.PrimaryWeapons, programSettings.DataSizes.PrimaryWeapons);
+            SeedCurrentAvailability(currentSaveBytes, programSettings.CoreAugs, programSettings.UnlockByteOffsets.CoreAugs, programSettings.DataLoreByteOffsets.CoreAugs, programSettings.DataSizes.CoreAugs);
+            SeedCurrentAvailability(currentSaveBytes, programSettings.Prototypes, programSettings.UnlockByteOffsets.Protoypes, programSettings.DataLoreByteOffsets.Protoypes, programSettings.DataSizes.Protoypes);
+
             foreach (Item item in programSettings.BasicAugments.Concat(programSettings.CoreAugs).Concat(programSettings.PrimaryWeapons).Concat(programSettings.Prototypes))
             {
                 item.ImagePath = ResolveIconPath(item.Name);
