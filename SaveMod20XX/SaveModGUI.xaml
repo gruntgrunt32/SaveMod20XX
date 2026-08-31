@@ -4,9 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SaveMod20XX"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" Width="532.168" Height="768" Title="20XX Save Editor" WindowStyle="None">
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             d:DesignHeight="300" Width="1040" Height="768" Title="20XX Save Editor" WindowStyle="None">
     <Window.Resources>
+        <ObjectDataProvider x:Key="LockStates" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:LockState" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
         <SolidColorBrush x:Key="TransparentIshBrush" Color="#000000" Opacity="0.25" />
 
         <Color x:Key="20XXLightestYellow">#FDEFE3</Color>
@@ -99,13 +105,45 @@
         <Label Content="20XX Save Editor" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="{StaticResource PurpleBrush}" FontFamily="Trebuchet MS" FontSize="22" FontStyle="Italic"/>
         <Label Content="20XX Save Editor" HorizontalAlignment="Left" Margin="1,1,0,0" VerticalAlignment="Top" Foreground="{StaticResource LightestYellowBrush}" FontFamily="Trebuchet MS" FontSize="22" FontStyle="Italic"/>
 
-        <DataGrid Name="ItemGrid" 
+        <DataGrid Name="ItemGrid"
                   DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                  ItemsSource="{Binding Path=AllItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                  AutoGenerateColumns="True" Margin="10,59,10.333,0" VerticalAlignment="Top" BorderBrush="#00688CAF" CanUserAddRows="False"
-                  Background="{StaticResource TransparentIshBrush}" RowBackground="{StaticResource TransparentIshBrush}" ColumnWidth="*" HorizontalAlignment="Center" Width="505" />
+                  ItemsSource="{Binding Path=AllItems, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  AutoGenerateColumns="False" Margin="10,59,10,10" BorderBrush="#00688CAF" CanUserAddRows="False"
+                  RowHeight="42" GridLinesVisibility="Horizontal"
+                  Background="{StaticResource TransparentIshBrush}" RowBackground="{StaticResource TransparentIshBrush}" HorizontalAlignment="Left" Width="1015">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Icon" Width="46" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding ImagePath}" Width="36" Height="36" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Toggle" Width="120" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Availability}" Click="ToggleAvailability_Click" Loaded="AvailabilityButton_Loaded"
+                                    Margin="3" FontWeight="Bold" Cursor="Hand" BorderThickness="1" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Augment" Binding="{Binding Name}" IsReadOnly="True" Width="150" />
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Foreground" Value="{StaticResource LightestYellowBrush}" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
         <Button x:Name="RunProgram" Content="Perform Save File Modification" HorizontalAlignment="Right" Margin="0,41,10.333,0" VerticalAlignment="Top" Width="196" FontFamily="Trebuchet MS" Click="RunModification_Click"/>
         <Button x:Name="SaveSettings" Content="Save Settings Changes" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top" Width="147" FontFamily="Trebuchet MS" Click="SaveSettings_Click"/>
+        <Button x:Name="BackupSave" Content="Backup Save" HorizontalAlignment="Left" Margin="165,37,0,0" VerticalAlignment="Top" Width="110" FontFamily="Trebuchet MS" Click="BackupSave_Click"/>
+        <Button x:Name="RestoreSave" Content="Restore Backup" HorizontalAlignment="Left" Margin="285,37,0,0" VerticalAlignment="Top" Width="120" FontFamily="Trebuchet MS" Click="RestoreSave_Click"/>
         <Rectangle Fill="Transparent" Height="31" Margin="0,0,0.333,0" Stroke="Transparent" VerticalAlignment="Top" MouseDown="Window_MouseDown"/>
         <Button Content="X" HorizontalAlignment="Right" Margin="0,10,10.333,0" VerticalAlignment="Top" Width="25" Background="{DynamicResource AceLineBrush}" BorderBrush="{DynamicResource AceRedBrush}" Click="Button_Click" FontWeight="Bold" FontStyle="Italic"/>
     </Grid>

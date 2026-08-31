@@ -280,7 +280,25 @@ namespace SaveMod20XX
                     ; // do nothing, leave it as-is
                 }
             }
-            return Settings.GetRawBytesFromBigInt(allItems);
+
+            // Force the result back to exactly the section width (big-endian, left-padded with zeros).
+            // The original code returned BigInteger.ToByteArray() directly, whose length varies with the
+            // value (dropping leading zero bytes / adding a sign byte). With the widened 13-byte augment
+            // field that could misalign the write, so we normalize to originalData.Length here.
+            byte[] raw = Settings.GetRawBytesFromBigInt(allItems);
+            if (raw.Length == originalData.Length) { return raw; }
+
+            byte[] fixedWidth = new byte[originalData.Length];
+            if (raw.Length < originalData.Length)
+            {
+                Array.Copy(raw, 0, fixedWidth, originalData.Length - raw.Length, raw.Length);
+            }
+            else
+            {
+                // drop any extra high-order bytes (e.g. a two's-complement sign byte)
+                Array.Copy(raw, raw.Length - originalData.Length, fixedWidth, 0, originalData.Length);
+            }
+            return fixedWidth;
         }
 
         /// <summary>
